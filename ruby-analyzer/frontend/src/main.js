@@ -29,7 +29,7 @@ document.getElementById('btn-analyze').addEventListener('click', runAnalysis);
 document.getElementById('btn-open').addEventListener('click', async () => {
     try {
         const path = await SelectFile();
-        if (!path) return; // пользователь отменил выбор
+        if (!path) return;
         const content = await ReadFile(path);
         $source.value = content;
         runAnalysis();
@@ -53,31 +53,28 @@ async function runAnalysis() {
 }
 
 function render(res) {
-    const opTable = tableHTML('ОПЕРАТОРЫ', res.operators);
-    const odTable = tableHTML('ОПЕРАНДЫ', res.operands);
+    const opTable = tableHTML('ОПЕРАТОРЫ', res.operators, 'Оператор', 'f1j');
+    const odTable = tableHTML('ОПЕРАНДЫ', res.operands, 'Операнд', 'f2i');
     const m = res.metrics;
 
     $result.innerHTML = `
     ${opTable}
     ${odTable}
-    <h2>МЕТРИКИ ХОЛСТЕДА</h2>
+    <h2>БАЗОВЫЕ МЕТРИКИ ХОЛСТЕДА</h2>
     <div class="metrics">
-      <div><span>n1 (уник. операторы)</span><b>${m.nu1}</b></div>
-      <div><span>n2 (уник. операнды)</span><b>${m.nu2}</b></div>
-      <div><span>N1 (всего операторов)</span><b>${m.n1}</b></div>
-      <div><span>N2 (всего операндов)</span><b>${m.n2}</b></div>
-      <div><span>n (словарь)</span><b>${m.nu}</b></div>
-      <div><span>N (длина)</span><b>${m.N}</b></div>
-      <div><span>V (объём)</span><b>${m.V.toFixed(2)}</b></div>
-      <div><span>D (сложность)</span><b>${m.D.toFixed(2)}</b></div>
-      <div><span>E (усилие)</span><b>${m.E.toFixed(2)}</b></div>
-      <div><span>B (ошибки)</span><b>${m.B.toFixed(3)}</b></div>
-      <div><span>T (время, сек)</span><b>${m.T.toFixed(2)}</b></div>
+      <div><span>Словарь программы n</span><b>${m.nu}</b></div>
+      <div><span>Длина программы N</span><b>${m.N}</b></div>
+      <div><span>Объём программы V</span><b>${m.V.toFixed(2)}</b></div>
     </div>
+    <p style="font-size:12px;color:#71717a;margin-top:12px;line-height:1.6">
+      n = n₁ + n₂ = ${m.nu1} + ${m.nu2} = ${m.nu}<br>
+      N = N₁ + N₂ = ${m.n1} + ${m.n2} = ${m.N}<br>
+      V = N · log₂(n) = ${m.N} · log₂(${m.nu}) ≈ ${m.V.toFixed(2)}
+    </p>
   `;
 }
 
-function tableHTML(title, entries) {
+function tableHTML(title, entries, colName, colFreq) {
     if (!entries || entries.length === 0) return '';
     const rows = entries.map((e, i) =>
         `<tr><td>${i + 1}</td><td>${escapeHtml(e.name)}</td><td class="num">${e.count}</td></tr>`
@@ -85,7 +82,7 @@ function tableHTML(title, entries) {
     return `
     <h2>${title}</h2>
     <table>
-      <thead><tr><th>№</th><th>Обозначение</th><th>Количество</th></tr></thead>
+      <thead><tr><th>j</th><th>${colName}</th><th>${colFreq}</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
   `;

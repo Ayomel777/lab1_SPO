@@ -24,13 +24,13 @@ var blockOpeners = map[string]bool{
 var blockParts = map[string]bool{
 	"else": true, "elsif": true, "when": true,
 	"rescue": true, "ensure": true,
+	"then": true, "in": true,
 }
 
 var keywordOperators = map[string]bool{
 	"return": true, "break": true, "next": true, "redo": true,
 	"retry": true, "yield": true, "super": true, "alias": true,
 	"undef": true, "and": true, "or": true, "not": true,
-	"in": true, "then": true,
 }
 
 var symbolOperators = map[string]bool{

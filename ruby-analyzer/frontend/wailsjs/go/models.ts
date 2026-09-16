@@ -15,17 +15,13 @@ export namespace analyzer {
 	    }
 	}
 	export class Metrics {
-	    n1: number;
-	    n2: number;
 	    nu1: number;
 	    nu2: number;
-	    N: number;
+	    n1: number;
+	    n2: number;
 	    nu: number;
+	    N: number;
 	    V: number;
-	    D: number;
-	    E: number;
-	    B: number;
-	    T: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Metrics(source);
@@ -33,17 +29,13 @@ export namespace analyzer {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.n1 = source["n1"];
-	        this.n2 = source["n2"];
 	        this.nu1 = source["nu1"];
 	        this.nu2 = source["nu2"];
-	        this.N = source["N"];
+	        this.n1 = source["n1"];
+	        this.n2 = source["n2"];
 	        this.nu = source["nu"];
+	        this.N = source["N"];
 	        this.V = source["V"];
-	        this.D = source["D"];
-	        this.E = source["E"];
-	        this.B = source["B"];
-	        this.T = source["T"];
 	    }
 	}
 	export class Result {

@@ -17,17 +17,14 @@ func isIdentifierPart(r rune) bool {
 
 func startsWith(runes []rune, position int, value string) bool {
 	valueRunes := []rune(value)
-
 	if position+len(valueRunes) > len(runes) {
 		return false
 	}
-
 	for i := 0; i < len(valueRunes); i++ {
 		if runes[position+i] != valueRunes[i] {
 			return false
 		}
 	}
-
 	return true
 }
 
@@ -44,7 +41,7 @@ func Tokenize(source string) []Token {
 			continue
 		}
 
-		// ОДНОСТРОЧНЫЙ КОММЕНТАРИЙ
+		// Комментарий
 		if runes[i] == '#' {
 			for i < len(runes) && runes[i] != '\n' {
 				i++
@@ -52,7 +49,7 @@ func Tokenize(source string) []Token {
 			continue
 		}
 
-		// СТРОКИ "text" / 'text'
+		// Строки
 		if runes[i] == '"' || runes[i] == '\'' {
 			quote := runes[i]
 			i++
@@ -60,180 +57,124 @@ func Tokenize(source string) []Token {
 			var builder strings.Builder
 			builder.WriteRune(quote)
 
-			closed := false
-
 			for i < len(runes) {
-
 				if runes[i] == '\\' && i+1 < len(runes) {
 					builder.WriteRune(runes[i])
 					builder.WriteRune(runes[i+1])
 					i += 2
 					continue
 				}
-
 				builder.WriteRune(runes[i])
-
 				if runes[i] == quote {
 					i++
-					closed = true
 					break
 				}
-
 				i++
 			}
 
-			_ = closed
-
-			tokens = append(tokens, Token{
-				Value: builder.String(),
-				Type:  TokenOperand,
-			})
-
+			tokens = append(tokens, Token{Value: builder.String(), Type: TokenOperand})
 			continue
 		}
 
-		// @name / @@name
+		// @ivar / @@cvar
 		if runes[i] == '@' {
 			var builder strings.Builder
 			builder.WriteRune(runes[i])
 			i++
-
 			if i < len(runes) && runes[i] == '@' {
 				builder.WriteRune(runes[i])
 				i++
 			}
-
 			for i < len(runes) && isIdentifierPart(runes[i]) {
 				builder.WriteRune(runes[i])
 				i++
 			}
-
-			tokens = append(tokens, Token{
-				Value: builder.String(),
-				Type:  TokenOperand,
-			})
-
+			tokens = append(tokens, Token{Value: builder.String(), Type: TokenOperand})
 			continue
 		}
 
-		// $name
+		// $global
 		if runes[i] == '$' {
 			var builder strings.Builder
 			builder.WriteRune(runes[i])
 			i++
-
 			for i < len(runes) && isIdentifierPart(runes[i]) {
 				builder.WriteRune(runes[i])
 				i++
 			}
-
-			tokens = append(tokens, Token{
-				Value: builder.String(),
-				Type:  TokenOperand,
-			})
-
+			tokens = append(tokens, Token{Value: builder.String(), Type: TokenOperand})
 			continue
 		}
 
-		// ЧИСЛА
+		// Числа
 		if unicode.IsDigit(runes[i]) {
 			var builder strings.Builder
 			hasDot := false
-
 			for i < len(runes) {
-
 				if unicode.IsDigit(runes[i]) || runes[i] == '_' {
 					builder.WriteRune(runes[i])
 					i++
 					continue
 				}
-
-				if runes[i] == '.' &&
-					!hasDot &&
-					i+1 < len(runes) &&
-					unicode.IsDigit(runes[i+1]) {
-
+				if runes[i] == '.' && !hasDot && i+1 < len(runes) && unicode.IsDigit(runes[i+1]) {
 					hasDot = true
 					builder.WriteRune(runes[i])
 					i++
 					continue
 				}
-
 				break
 			}
-
-			tokens = append(tokens, Token{
-				Value: builder.String(),
-				Type:  TokenOperand,
-			})
-
+			tokens = append(tokens, Token{Value: builder.String(), Type: TokenOperand})
 			continue
 		}
 
-		// :name
-		if runes[i] == ':' &&
-			i+1 < len(runes) &&
-			runes[i+1] != ':' &&
-			isIdentifierStart(runes[i+1]) {
-
+		// :symbol
+		if runes[i] == ':' && i+1 < len(runes) && runes[i+1] != ':' && isIdentifierStart(runes[i+1]) {
 			var builder strings.Builder
 			builder.WriteRune(':')
 			i++
-
 			for i < len(runes) && isIdentifierPart(runes[i]) {
 				builder.WriteRune(runes[i])
 				i++
 			}
-
-			tokens = append(tokens, Token{
-				Value: builder.String(),
-				Type:  TokenOperand,
-			})
-
+			tokens = append(tokens, Token{Value: builder.String(), Type: TokenOperand})
 			continue
 		}
 
-		// ИДЕНТИФИКАТОР / КЛЮЧЕВОЕ СЛОВО
+		// Идентификатор / ключевое слово
 		if isIdentifierStart(runes[i]) {
 			var builder strings.Builder
-
 			for i < len(runes) && isIdentifierPart(runes[i]) {
 				builder.WriteRune(runes[i])
 				i++
 			}
-
 			if i < len(runes) && (runes[i] == '?' || runes[i] == '!') {
 				builder.WriteRune(runes[i])
 				i++
 			}
-
 			word := builder.String()
 
 			if blockOpeners[word] {
 				tokens = append(tokens, Token{Value: word, Type: TokenOpenBlock})
 				continue
 			}
-
 			if word == "end" {
 				tokens = append(tokens, Token{Value: word, Type: TokenCloseBlock})
 				continue
 			}
-
 			if blockParts[word] {
 				tokens = append(tokens, Token{Value: word, Type: TokenBlockPart})
 				continue
 			}
-
 			if keywordOperators[word] {
 				tokens = append(tokens, Token{Value: word, Type: TokenOperator})
 				continue
 			}
-
 			tokens = append(tokens, Token{Value: word, Type: TokenOperand})
 			continue
 		}
 
-		// КРУГЛЫЕ СКОБКИ
+		// Скобки
 		if runes[i] == '(' {
 			tokens = append(tokens, Token{Value: "(", Type: TokenOperator})
 			i++
@@ -244,8 +185,6 @@ func Tokenize(source string) []Token {
 			i++
 			continue
 		}
-
-		// КВАДРАТНЫЕ СКОБКИ
 		if runes[i] == '[' {
 			tokens = append(tokens, Token{Value: "[", Type: TokenOperator})
 			i++
@@ -256,8 +195,6 @@ func Tokenize(source string) []Token {
 			i++
 			continue
 		}
-
-		// ФИГУРНЫЕ СКОБКИ
 		if runes[i] == '{' {
 			tokens = append(tokens, Token{Value: "{", Type: TokenOperator})
 			i++
@@ -269,7 +206,7 @@ func Tokenize(source string) []Token {
 			continue
 		}
 
-		// МНОГОСИМВОЛЬНЫЕ ОПЕРАТОРЫ
+		// Многосимвольные операторы
 		found := false
 		for _, operator := range multiCharOperators {
 			if startsWith(runes, i, operator) {
@@ -283,7 +220,7 @@ func Tokenize(source string) []Token {
 			continue
 		}
 
-		// ОДНОСИМВОЛЬНЫЕ ОПЕРАТОРЫ
+		// Односимвольные операторы
 		current := string(runes[i])
 		if symbolOperators[current] {
 			tokens = append(tokens, Token{Value: current, Type: TokenOperator})

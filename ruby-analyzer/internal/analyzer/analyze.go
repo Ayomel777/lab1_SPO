@@ -8,17 +8,13 @@ type Entry struct {
 }
 
 type Metrics struct {
-	N1  int     `json:"n1"`
-	N2  int     `json:"n2"`
-	Nu1 int     `json:"nu1"`
-	Nu2 int     `json:"nu2"`
-	N   int     `json:"N"`
-	Nu  int     `json:"nu"`
-	V   float64 `json:"V"`
-	D   float64 `json:"D"`
-	E   float64 `json:"E"`
-	B   float64 `json:"B"`
-	T   float64 `json:"T"`
+	Nu1 int     `json:"nu1"` // n1 — уникальные операторы
+	Nu2 int     `json:"nu2"` // n2 — уникальные операнды
+	N1  int     `json:"n1"`  // N1 — всего операторов
+	N2  int     `json:"n2"`  // N2 — всего операндов
+	Nu  int     `json:"nu"`  // n = n1 + n2 — словарь
+	N   int     `json:"N"`   // N = N1 + N2 — длина
+	V   float64 `json:"V"`   // V = N·log₂(n) — объём
 }
 
 type Result struct {
@@ -27,7 +23,6 @@ type Result struct {
 	Metrics   Metrics `json:"metrics"`
 }
 
-// Analyze — единая точка входа. Заменяет CLI-main из исходной программы.
 func Analyze(source string) Result {
 	tokens := Tokenize(source)
 	tokens = Normalize(tokens)
@@ -43,6 +38,7 @@ func Analyze(source string) Result {
 func CountTokens(tokens []Token) (map[string]int, map[string]int) {
 	operators := make(map[string]int)
 	operands := make(map[string]int)
+
 	for _, t := range tokens {
 		if t.Type == TokenOperator {
 			operators[t.Value]++
