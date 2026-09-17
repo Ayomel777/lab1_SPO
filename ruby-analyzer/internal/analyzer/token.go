@@ -11,8 +11,9 @@ const (
 )
 
 type Token struct {
-	Value string
-	Type  TokenType
+	Value      string
+	Type       TokenType
+	IsFuncName bool
 }
 
 var blockOpeners = map[string]bool{
